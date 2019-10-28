@@ -146,6 +146,8 @@ def main(opt, device_id, batch_queue=None, semaphore=None):
         mlflow.log_param('n_enc_parameters', enc)
         mlflow.log_param('n_dec_parameters', dec)
         mlflow.log_param('n_total_parameters', n_params)
+        import onmt
+        mlflow.log_param('onmt_version', onmt.__version__)
 
     trainer.train(
         train_iter,
