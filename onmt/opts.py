@@ -547,6 +547,13 @@ def train_opts(parser):
               type=str, default="runs/onmt",
               help="Log directory for Tensorboard. "
                    "This is also the name of the run.")
+    # Use MLflow for logging training runs and config parameters
+    group.add('--mlflow', '-mlflow', action="store_true",
+              help="Use mlflow to log training runs and parameters. "
+                   "Must have the library mlflow >= 1.3.0")
+    group.add("--mlflow_experiment_name", "-mlflow_experiment_name",
+              type=str, default=None,
+              help="MLflow experiment name")
 
     group = parser.add_argument_group('Speech')
     # Options most relevant to speech
