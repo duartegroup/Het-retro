@@ -22,13 +22,14 @@ setup(
     install_requires=[
         "six",
         "tqdm~=4.30.0",
-        "torch>=1.2",
+        "torch>=1.1",
         "torchtext==0.4.0",
         "future",
         "configargparse",
         "tensorboard>=1.14",
         "flask",
         "pyonmttok==1.*;platform_system=='Linux'",
+        "mlflow==1.3.0"
     ],
     entry_points={
         "console_scripts": [

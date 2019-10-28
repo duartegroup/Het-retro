@@ -135,6 +135,18 @@ def main(opt, device_id, batch_queue=None, semaphore=None):
         logger.warning("Option single_pass is enabled, ignoring train_steps.")
         train_steps = 0
 
+    # added for mlflow integration
+    if opt.mlflow:
+        import mlflow
+        if opt.mlflow_experiment_name is not None:
+            mlflow.set_experiment(opt.mlflow_experiment_name)
+        mlflow.start_run()
+        for k, v in vars(opt).items():
+                mlflow.log_param(k, v)
+        mlflow.log_param('n_enc_parameters', enc)
+        mlflow.log_param('n_dec_parameters', dec)
+        mlflow.log_param('n_total_parameters', n_params)
+
     trainer.train(
         train_iter,
         train_steps,
@@ -142,5 +154,10 @@ def main(opt, device_id, batch_queue=None, semaphore=None):
         valid_iter=valid_iter,
         valid_steps=opt.valid_steps)
 
+
+
     if trainer.report_manager.tensorboard_writer is not None:
-        trainer.report_manager.tensorboard_writer.close()
+        if opt.mlflow:
+            mlflow.end_run()
+        else:
+            trainer.report_manager.tensorboard_writer.close()

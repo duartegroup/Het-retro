@@ -17,6 +17,8 @@ def build_report_manager(opt, gpu_rank):
             tensorboard_log_dir += datetime.now().strftime("/%b-%d_%H-%M-%S")
 
         writer = SummaryWriter(tensorboard_log_dir, comment="Unmt")
+    elif opt.mlflow and gpu_rank == 0:
+        writer = MLflowSummaryWriter()
     else:
         writer = None
 
@@ -156,3 +158,16 @@ class ReportMgr(ReportMgrBase):
                                        "valid",
                                        lr,
                                        step)
+
+class MLflowSummaryWriter(object):
+    """
+    Map Summarywriter add_scalar function to mlflow log_metric 
+    """
+    def __init__(self):
+        pass
+
+    def add_scalar(self, tag, scalar_value, global_step=None):
+        import mlflow
+        # mlflow cannot display metric that include '/' char
+        tag = tag.replace('/', '_')
+        mlflow.log_metric(tag, scalar_value, step=global_step)
