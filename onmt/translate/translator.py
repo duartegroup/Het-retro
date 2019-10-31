@@ -20,8 +20,19 @@ from onmt.modules.copy_generator import collapse_copy_scores
 
 
 def build_translator(opt, report_score=True, logger=None, out_file=None):
+    #phs:
+    log_probs_out_file=None
+    target_score_out_file=None
+    #
+
     if out_file is None:
         out_file = codecs.open(opt.output, 'w+', 'utf-8')
+
+        # phs: create files to log log probabilities and gold score. 
+        if opt.log_probs:
+            log_probs_out_file = codecs.open(opt.output + '_log_probs', 'w+', 'utf-8')
+            target_score_out_file = codecs.open(opt.output + '_gold_score', 'w+', 'utf-8')
+        #
 
     load_test_model = onmt.decoders.ensemble.load_test_model \
         if len(opt.models) > 1 else onmt.model_builder.load_test_model
@@ -37,7 +48,9 @@ def build_translator(opt, report_score=True, logger=None, out_file=None):
         global_scorer=scorer,
         out_file=out_file,
         report_score=report_score,
-        logger=logger
+        logger=logger,
+        log_probs_out_file=log_probs_out_file,
+        target_score_out_file=target_score_out_file
     )
     return translator
 
@@ -132,7 +145,10 @@ class Translator(object):
             out_file=None,
             report_score=True,
             logger=None,
-            seed=-1):
+            seed=-1,
+            log_probs_out_file=None, # added phs
+            target_score_out_file=None # added phs
+            ):
         self.model = model
         self.fields = fields
         tgt_field = dict(self.fields)["tgt"].base_field
@@ -202,6 +218,9 @@ class Translator(object):
 
         set_random_seed(seed, self._use_cuda)
 
+        self.log_probs_out_file = log_probs_out_file # added phs
+        self.target_score_out_file = target_score_out_file # added phs
+
     @classmethod
     def from_opt(
             cls,
@@ -212,7 +231,10 @@ class Translator(object):
             global_scorer=None,
             out_file=None,
             report_score=True,
-            logger=None):
+            logger=None,
+            log_probs_out_file=None, # added phs
+            target_score_out_file=None # added phs
+            ):
         """Alternate constructor.
 
         Args:
@@ -261,7 +283,10 @@ class Translator(object):
             out_file=out_file,
             report_score=report_score,
             logger=logger,
-            seed=opt.seed)
+            seed=opt.seed,
+            log_probs_out_file=log_probs_out_file, # added phs
+            target_score_out_file=target_score_out_file # added phs
+            )
 
     def _log(self, msg):
         if self.logger:
@@ -360,11 +385,25 @@ class Translator(object):
                     gold_score_total += trans.gold_score
                     gold_words_total += len(trans.gold_sent) + 1
 
+                    # phs: added to log gold scores to file
+                    if self.target_score_out_file is not None:
+                        self.target_score_out_file.write(
+                            str(trans.gold_score.item()) + '\n')
+                        self.target_score_out_file.flush()
+                    #
+
                 n_best_preds = [" ".join(pred)
                                 for pred in trans.pred_sents[:self.n_best]]
                 all_predictions += [n_best_preds]
                 self.out_file.write('\n'.join(n_best_preds) + '\n')
                 self.out_file.flush()
+
+                # phs: added to log log probs to file
+                if self.log_probs_out_file is not None:
+                    self.log_probs_out_file.write(
+                        '\n'.join([str(t.item()) for t in trans.pred_scores[:self.n_best]]) + '\n')
+                    self.log_probs_out_file.flush()
+                #
 
                 if self.verbose:
                     sent_number = next(counter)
