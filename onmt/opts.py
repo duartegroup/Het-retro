@@ -610,7 +610,7 @@ def translate_opts(parser):
     group.add('--output', '-output', default='pred.txt',
               help="Path to output the predictions (each line will "
                    "be the decoded sequence")
-    group.add('--log_probs', '-log_probs', default=None,
+    group.add('--log_probs', '-log_probs', action='store_true',
               help="Output file with log_probs and gold_score ")
     group.add('--report_bleu', '-report_bleu', action='store_true',
               help="Report bleu score after translation, "
