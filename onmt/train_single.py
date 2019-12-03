@@ -140,7 +140,10 @@ def main(opt, device_id, batch_queue=None, semaphore=None):
         import mlflow
         if opt.mlflow_experiment_name is not None:
             mlflow.set_experiment(opt.mlflow_experiment_name)
-        mlflow.start_run()
+        if opt.mlflow_run_name is not None:
+            mlflow.start_run(run_name=opt.mlflow_run_name)
+        else:
+            mlflow.start_run()
         for k, v in vars(opt).items():
                 mlflow.log_param(k, v)
         mlflow.log_param('n_enc_parameters', enc)

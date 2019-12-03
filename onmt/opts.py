@@ -554,6 +554,10 @@ def train_opts(parser):
     group.add("--mlflow_experiment_name", "-mlflow_experiment_name",
               type=str, default=None,
               help="MLflow experiment name")
+    group.add("--mlflow_run_name", "-mlflow_run_name",
+              type=str, default=None,
+              help="MLflow run name")
+
 
     group = parser.add_argument_group('Speech')
     # Options most relevant to speech
