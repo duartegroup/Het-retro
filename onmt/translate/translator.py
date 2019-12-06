@@ -147,7 +147,8 @@ class Translator(object):
             logger=None,
             seed=-1,
             log_probs_out_file=None, # added phs
-            target_score_out_file=None # added phs
+            target_score_out_file=None, # added phs
+            is_ibmrxn=False # added phs
             ):
         self.model = model
         self.fields = fields
@@ -220,6 +221,7 @@ class Translator(object):
 
         self.log_probs_out_file = log_probs_out_file # added phs
         self.target_score_out_file = target_score_out_file # added phs
+        self.is_ibmrxn = is_ibmrxn # added phs
 
     @classmethod
     def from_opt(
@@ -285,7 +287,8 @@ class Translator(object):
             logger=logger,
             seed=opt.seed,
             log_probs_out_file=log_probs_out_file, # added phs
-            target_score_out_file=target_score_out_file # added phs
+            target_score_out_file=target_score_out_file, # added phs
+            is_ibmrxn = opt.is_ibmrxn # added_phs
             )
 
     def _log(self, msg):
@@ -304,6 +307,84 @@ class Translator(object):
         else:
             gs = [0] * batch_size
         return gs
+
+
+    def likelihood(
+            self,
+            src,
+            tgt=None,
+            src_dir=None,
+            batch_size=None,
+            batch_type="sents",
+            attn_debug=False,
+            phrase_table=""):
+        """Translate content of ``src`` and get gold scores from ``tgt``.
+
+        Args:
+            src: See :func:`self.src_reader.read()`.
+            tgt: See :func:`self.tgt_reader.read()`.
+            src_dir: See :func:`self.src_reader.read()` (only relevant
+                for certain types of data).
+            batch_size (int): size of examples per mini-batch
+            attn_debug (bool): enables the attention logging
+
+        Returns:
+            (`list`, `list`)
+
+            * all_scores is a list of `batch_size` lists of `n_best` scores
+            * all_predictions is a list of `batch_size` lists
+                of `n_best` predictions
+        """
+
+        if batch_size is None:
+            raise ValueError("batch_size must be set")
+
+        data = inputters.Dataset(
+            self.fields,
+            readers=([self.src_reader, self.tgt_reader]
+                     if tgt else [self.src_reader]),
+            data=[("src", src), ("tgt", tgt)] if tgt else [("src", src)],
+            dirs=[src_dir, None] if tgt else [src_dir],
+            sort_key=inputters.str2sortkey[self.data_type],
+            filter_pred=self._filter_pred
+        )
+
+        data_iter = inputters.OrderedIterator(
+            dataset=data,
+            device=self._dev,
+            batch_size=batch_size,
+            batch_size_fn=max_tok_len if batch_type == "tokens" else None,
+            train=False,
+            sort=False,
+            sort_within_batch=True,
+            shuffle=False
+        )
+
+        all_gold_scores = []
+
+        use_src_map = self.copy_attn
+        beam_size = self.beam_size
+
+        for batch in data_iter:
+            # import pdb; pdb.set_trace()
+            # (0) Prep the components of the search.
+            
+
+            # (1) Run the encoder on the src.
+            src, enc_states, memory_bank, src_lengths = self._run_encoder(batch)
+            self.model.decoder.init_state(src, memory_bank, enc_states)
+
+            
+            gold_scores = self._gold_score(
+                    batch, memory_bank, src_lengths, data.src_vocabs, use_src_map,
+                    enc_states, batch_size, src)
+            gold_scores = gold_scores.detach().numpy().tolist()
+
+            all_gold_scores += [score for _, score in sorted(zip(batch.indices.numpy().tolist(), gold_scores))]
+
+        return all_gold_scores
+
+
 
     def translate(
             self,
@@ -368,6 +449,9 @@ class Translator(object):
 
         all_scores = []
         all_predictions = []
+        if self.is_ibmrxn:
+            all_attentions = [] # added phs
+            attn_debug = True
 
         start_time = time.time()
 
@@ -381,6 +465,10 @@ class Translator(object):
                 all_scores += [trans.pred_scores[:self.n_best]]
                 pred_score_total += trans.pred_scores[0]
                 pred_words_total += len(trans.pred_sents[0])
+                
+                if self.is_ibmrxn:
+                    all_attentions.append(trans.attns[0]) # added phs
+
                 if tgt is not None:
                     gold_score_total += trans.gold_score
                     gold_words_total += len(trans.gold_sent) + 1
@@ -436,6 +524,13 @@ class Translator(object):
                         self.logger.info(output)
                     else:
                         os.write(1, output.encode('utf-8'))
+
+        if self.is_ibmrxn: # added phs
+            return {
+                'score': all_scores if batch_size > 1 else all_scores[0], # return more scores when batch_size > 1
+                'prediction': all_predictions,
+                'context_attns': all_attentions
+            }
 
         end_time = time.time()
 
