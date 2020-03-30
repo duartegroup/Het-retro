@@ -554,6 +554,10 @@ def train_opts(parser):
     group.add("--mlflow_experiment_name", "-mlflow_experiment_name",
               type=str, default=None,
               help="MLflow experiment name")
+    group.add("--mlflow_run_name", "-mlflow_run_name",
+              type=str, default=None,
+              help="MLflow run name")
+
 
     group = parser.add_argument_group('Speech')
     # Options most relevant to speech
@@ -717,6 +721,8 @@ def translate_opts(parser):
                    "is sents. Tokens will do dynamic batching")
     group.add('--gpu', '-gpu', type=int, default=-1,
               help="Device to run on")
+    group.add('--num_threads', '-num_threads', type=int,
+              help="Number of CPUs to use for translation")
 
     # Options most relevant to speech.
     group = parser.add_argument_group('Speech')

@@ -4,6 +4,8 @@
 from __future__ import unicode_literals
 from itertools import repeat
 
+import torch
+
 from onmt.utils.logging import init_logger
 from onmt.utils.misc import split_corpus
 from onmt.translate.translator import build_translator
@@ -15,6 +17,9 @@ from onmt.utils.parse import ArgumentParser
 def translate(opt):
     ArgumentParser.validate_translate_opts(opt)
     logger = init_logger(opt.log_file)
+
+    if opt.num_threads is not None:
+        torch.set_num_threads(opt.num_threads)
 
     translator = build_translator(opt, report_score=True)
     src_shards = split_corpus(opt.src, opt.shard_size)

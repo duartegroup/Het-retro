@@ -7,11 +7,11 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
-    name='OpenNMT-py',
-    description='A python implementation of OpenNMT',
+    name='rxn-OpenNMT-py',
+    description='Fork of OpenNMT-py for use in rxn projects',
     long_description=long_description,
     long_description_content_type='text/markdown',
-    version='1.0.0.rc2',
+    version='0.0.0',
     packages=find_packages(),
     project_urls={
         "Documentation": "http://opennmt.net/OpenNMT-py/",
