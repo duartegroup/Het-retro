@@ -11,7 +11,7 @@ setup(
     description='Fork of OpenNMT-py for use in rxn projects',
     long_description=long_description,
     long_description_content_type='text/markdown',
-    version='0.0.0',
+    version='1.0.0',
     packages=find_packages(),
     project_urls={
         "Documentation": "http://opennmt.net/OpenNMT-py/",
@@ -22,14 +22,10 @@ setup(
     install_requires=[
         "six",
         "tqdm~=4.30.0",
-        "torch>=1.1",
+        "torch==1.2",
         "torchtext==0.4.0",
         "future",
         "configargparse",
-        "tensorboard>=1.14",
-        "flask",
-        "pyonmttok==1.*;platform_system=='Linux'",
-        "mlflow==1.3.0"
     ],
     entry_points={
         "console_scripts": [
