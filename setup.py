@@ -22,8 +22,8 @@ setup(
     install_requires=[
         "six",
         "tqdm~=4.30.0",
-        "torch>=1.2,<1.4",
-        "torchtext>=0.4.0",
+        "torch>=1.2,<1.4", # Originally torch==1.2.0, changed for compatibility with powerai-1.7.0 (pytorch-1.3.1)
+        "torchtext==0.4.0",
         "future",
         "configargparse",
     ],
