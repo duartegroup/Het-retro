@@ -110,3 +110,5 @@ ENV/
 
 # Tensorboard
 runs/
+
+data/uspto_dataset/src-train.txt
