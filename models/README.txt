@@ -1,1 +1,0 @@
-# USPTO training data
