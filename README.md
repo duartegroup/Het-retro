@@ -1,170 +1,180 @@
-# OpenNMT-py: Open-Source Neural Machine Translation
+# Carbohydrate Transformer
 
-[![Build Status](https://travis-ci.org/OpenNMT/OpenNMT-py.svg?branch=master)](https://travis-ci.org/OpenNMT/OpenNMT-py)
-[![Run on FH](https://img.shields.io/badge/Run%20on-FloydHub-blue.svg)](https://floydhub.com/run?template=https://github.com/OpenNMT/OpenNMT-py)
-
-This is a [Pytorch](https://github.com/pytorch/pytorch)
-port of [OpenNMT](https://github.com/OpenNMT/OpenNMT),
-an open-source (MIT) neural machine translation system. It is designed to be research friendly to try out new ideas in translation, summary, image-to-text, morphology, and many other domains. Some companies have proven the code to be production ready.
-
-We love contributions. Please consult the Issues page for any [Contributions Welcome](https://github.com/OpenNMT/OpenNMT-py/issues?q=is%3Aissue+is%3Aopen+label%3A%22contributions+welcome%22) tagged post. 
-
-<center style="padding: 40px"><img width="70%" src="http://opennmt.github.io/simple-attn.png" /></center>
-
-Before raising an issue, make sure you read the requirements and the documentation examples.
-
-Unless there is a bug, please use the [Forum](http://forum.opennmt.net) or [Gitter](https://gitter.im/OpenNMT/OpenNMT-py) to ask questions.
-
-
-Table of Contents
-=================
-  * [Full Documentation](http://opennmt.net/OpenNMT-py/)
-  * [Requirements](#requirements)
-  * [Features](#features)
-  * [Quickstart](#quickstart)
-  * [Run on FloydHub](#run-on-floydhub)
-  * [Acknowledgements](#acknowledgements)
-  * [Citation](#citation)
+This is the code and data of the "Carbohydrate Transformer: Predicting  Regio- and Stereoselective Reactions using Transfer Learning"
 
 ## Requirements
 
-Install `OpenNMT-py` from `pip`:
-```bash
-pip install OpenNMT-py
-```
+The specific version used in this project were:
+Python: 3.6.9
+Torch Version: 1.2.0
+TorchText Version: 0.4.0
+ONMT Version: 1.0.0
+RDKit: 2019.03.2
 
-or from the sources:
+## Conda Environemt Setup
+
 ```bash
-git clone https://github.com/OpenNMT/OpenNMT-py.git
+conda create -n onmt36 python=3.6
+conda activate onmt36
+conda install -c rdkit rdkit=2019.03.2 -y
+conda install -c pytorch pytorch=1.2.0 -y
+git clone https://github.com/rxn4chemistry/OpenNMT-py.git
 cd OpenNMT-py
-python setup.py install
+git checkout carbohydrate_transformer
+pip install -e .
 ```
-
-Note: If you have MemoryError in the install try to use `pip` with `--no-cache-dir`.
-
-*(Optionnal)* some advanced features (e.g. working audio, image or pretrained models) requires extra packages, you can install it with:
-```bash
-pip install -r requirements.opt.txt
-```
-
-Note:
-
-- some features require Python 3.5 and after (eg: Distributed multigpu, entmax)
-- we currently only support PyTorch 1.2 (should work with 1.1)
-
-## Features
-
-- [Seq2Seq models (encoder-decoder) with multiple RNN cells (lstm/gru) and attention (dotprod/mlp) types](http://opennmt.net/OpenNMT-py/options/train.html#model-encoder-decoder)
-- [Transformer models](http://opennmt.net/OpenNMT-py/FAQ.html#how-do-i-use-the-transformer-model)
-- [Copy and Coverage Attention](http://opennmt.net/OpenNMT-py/options/train.html#model-attention)
-- [Pretrained Embeddings](http://opennmt.net/OpenNMT-py/FAQ.html#how-do-i-use-pretrained-embeddings-e-g-glove)
-- [Source word features](http://opennmt.net/OpenNMT-py/options/train.html#model-embeddings)
-- [Image-to-text processing](http://opennmt.net/OpenNMT-py/im2text.html)
-- [Speech-to-text processing](http://opennmt.net/OpenNMT-py/speech2text.html)
-- [TensorBoard logging](http://opennmt.net/OpenNMT-py/options/train.html#logging)
-- [Multi-GPU training](http://opennmt.net/OpenNMT-py/FAQ.html##do-you-support-multi-gpu)
-- [Data preprocessing](http://opennmt.net/OpenNMT-py/options/preprocess.html)
-- [Inference (translation) with batching and beam search](http://opennmt.net/OpenNMT-py/options/translate.html)
-- Inference time loss functions.
-- [Conv2Conv convolution model]
-- SRU "RNNs faster than CNN" paper
-- Mixed-precision training with [APEX](https://github.com/NVIDIA/apex), optimized on [Tensor Cores](https://developer.nvidia.com/tensor-cores)
 
 ## Quickstart
 
-[Full Documentation](http://opennmt.net/OpenNMT-py/)
+The training and evaluation was performed using [OpenNMT-py](https://github.com/OpenNMT/OpenNMT-py).
+The full documentation of the OpenNMT library can be found [here](http://opennmt.net/OpenNMT-py/). 
 
 
 ### Step 1: Preprocess the data
 
+Start by merging the two uspto training source files into a single file using `python merge_src_splits.py` in `data/uspto_dataset`.
+
+#### Single data sets
 ```bash
-onmt_preprocess -train_src data/src-train.txt -train_tgt data/tgt-train.txt -valid_src data/src-val.txt -valid_tgt data/tgt-val.txt -save_data data/demo
+DATADIR=data/uspto_dataset
+onmt_preprocess -train_src $DATADIR/src-train.txt -train_tgt $DATADIR/tgt-train.txt -valid_src $DATADIR/src-valid.txt -valid_tgt $DATADIR/tgt-valid.txt -save_data $DATADIR/uspto -src_seq_length 3000 -tgt_seq_length 3000 -src_vocab_size 3000 -tgt_vocab_size 3000 -share_vocab
 ```
 
-We will be working with some example data in `data/` folder.
+```bash
+DATADIR=data/transfer_dataset
+onmt_preprocess -train_src $DATADIR/src-train.txt -train_tgt $DATADIR/tgt-train.txt -valid_src $DATADIR/src-valid.txt -valid_tgt $DATADIR/tgt-valid.txt -save_data $DATADIR/sequential -src_seq_length 3000 -tgt_seq_length 3000 -src_vocab_size 3000 -tgt_vocab_size 3000 -share_vocab
+```
 
-The data consists of parallel source (`src`) and target (`tgt`) data containing one sentence per line with tokens separated by a space:
+#### Multi-task data sets
+
+```bash
+DATASET=data/uspto_dataset
+DATASET_TRANSFER=data/transfer_dataset
+
+onmt_preprocess -train_src ${DATASET}/src-train.txt ${DATASET_TRANSFER}/src-train.txt -train_tgt ${DATASET}/tgt-train.txt ${DATASET_TRANSFER}/tgt-train.txt -train_ids uspto transfer  -valid_src ${DATASET_TRANSFER}/src-valid.txt -valid_tgt ${DATASET_TRANSFER}/tgt-valid.txt -save_data ${DATASET_TRANSFER}/multi_task -src_seq_length 3000 -tgt_seq_length 3000 -src_vocab_size 3000 -tgt_vocab_size 3000 -share_vocab
+
+```
+
+
+The files have been previously tokenized using the tokenization function for the reaction SMILES is available from https://github.com/pschwllr/MolecularTransformer.
+
+
+The data consists of parallel precursors (`src`) and products (`tgt`) data containing one reaction per line with tokens separated by a space:
 
 * `src-train.txt`
 * `tgt-train.txt`
 * `src-val.txt`
 * `tgt-val.txt`
 
-Validation files are required and used to evaluate the convergence of the training. It usually contains no more than 5000 sentences.
-
 
 After running the preprocessing, the following files are generated:
 
-* `demo.train.pt`: serialized PyTorch file containing training data
-* `demo.valid.pt`: serialized PyTorch file containing validation data
-* `demo.vocab.pt`: serialized PyTorch file containing vocabulary data
+* `uspto.train.pt`: serialized PyTorch file containing training data
+* `uspto.valid.pt`: serialized PyTorch file containing validation data
+* `uspto.vocab.pt`: serialized PyTorch file containing vocabulary data
 
 
 Internally the system never touches the words themselves, but uses these indices.
 
 ### Step 2: Train the model
 
-```bash
-onmt_train -data data/demo -save_model demo-model
-```
+The transformer models were trained using the following hyperparameters:
 
-The main train command is quite simple. Minimally it takes a data file
-and a save file.  This will run the default model, which consists of a
-2-layer LSTM with 500 hidden units on both the encoder/decoder.
-If you want to train on GPU, you need to set, as an example:
-CUDA_VISIBLE_DEVICES=1,3
-`-world_size 2 -gpu_ranks 0 1` to use (say) GPU 1 and 3 on this node only.
-To know more about distributed training on single or multi nodes, read the FAQ section.
-
-### Step 3: Translate
+#### Pretraining
 
 ```bash
-onmt_translate -model demo-model_acc_XX.XX_ppl_XXX.XX_eX.pt -src data/src-test.txt -output pred.txt -replace_unk -verbose
+DATADIR=data/uspto_dataset
+onmt_train -data $DATADIR/uspto  \
+        -save_model  uspto_model_pretrained \
+        -seed $SEED -gpu_ranks 0  \
+        -train_steps 250000 -param_init 0 \
+        -param_init_glorot -max_generator_batches 32 \
+        -batch_size 6144 -batch_type tokens \
+         -normalization tokens -max_grad_norm 0  -accum_count 4 \
+        -optim adam -adam_beta1 0.9 -adam_beta2 0.998 -decay_method noam  \
+        -warmup_steps 8000 -learning_rate 2 -label_smoothing 0.0 \
+        -layers 4 -rnn_size  384 -word_vec_size 384 \
+        -encoder_type transformer -decoder_type transformer \
+        -dropout 0.1 -position_encoding -share_embeddings  \
+        -global_attention general -global_attention_function softmax \
+        -self_attn_type scaled-dot -heads 8 -transformer_ff 2048
 ```
 
-Now you have a model which you can use to predict on new data. We do this by running beam search. This will output predictions into `pred.txt`.
+#### Multi-task transfer learning
 
-!!! note "Note"
-    The predictions are going to be quite terrible, as the demo dataset is small. Try running on some larger datasets! For example you can download millions of parallel sentences for [translation](http://www.statmt.org/wmt16/translation-task.html) or [summarization](https://github.com/harvardnlp/sent-summary).
+```bash
+DATADIR=data/transfer_dataset
+WEIGHT1=9
+WEIGHT2=1
 
-## Alternative: Run on FloydHub
+onmt_train -data $DATADIR/multi_task  \
+        -save_model  multi_task_model \
+        -data_ids uspto transfer --data_weights $WEIGHT1 $WEIGHT2
+        -seed $SEED -gpu_ranks 0  \
+        -train_steps 250000 -param_init 0 \
+        -param_init_glorot -max_generator_batches 32 \
+        -batch_size 6144 -batch_type tokens \
+         -normalization tokens -max_grad_norm 0  -accum_count 4 \
+        -optim adam -adam_beta1 0.9 -adam_beta2 0.998 -decay_method noam  \
+        -warmup_steps 8000 -learning_rate 2 -label_smoothing 0.0 \
+        -layers 4 -rnn_size  384 -word_vec_size 384 \
+        -encoder_type transformer -decoder_type transformer \
+        -dropout 0.1 -position_encoding -share_embeddings  \
+        -global_attention general -global_attention_function softmax \
+        -self_attn_type scaled-dot -heads 8 -transformer_ff 2048
+```
 
-[![Run on FloydHub](https://static.floydhub.com/button/button.svg)](https://floydhub.com/run?template=https://github.com/OpenNMT/OpenNMT-py)
 
-Click this button to open a Workspace on [FloydHub](https://www.floydhub.com/?utm_medium=readme&utm_source=opennmt-py&utm_campaign=jul_2018) for training/testing your code.
+#### Sequential transfer learning
+
+```bash
+DATADIR=data/transfer_dataset
+
+onmt_train -data $DATADIR/sequential  \
+        -train_from models/upsto_model_pretrained.pt \
+        -save_model  sequential_model \
+        -seed $SEED -gpu_ranks 0  \
+        -train_steps 6000 -param_init 0 \
+        -param_init_glorot -max_generator_batches 32 \
+        -batch_size 6144 -batch_type tokens \
+         -normalization tokens -max_grad_norm 0  -accum_count 4 \
+        -optim adam -adam_beta1 0.9 -adam_beta2 0.998 -decay_method noam  \
+        -warmup_steps 8000 -learning_rate 2 -label_smoothing 0.0 \
+        -layers 4 -rnn_size  384 -word_vec_size 384 \
+        -encoder_type transformer -decoder_type transformer \
+        -dropout 0.1 -position_encoding -share_embeddings  \
+        -global_attention general -global_attention_function softmax \
+        -self_attn_type scaled-dot -heads 8 -transformer_ff 2048
+```
 
 
-## Pretrained embeddings (e.g. GloVe)
+### Step 3: Chemical reaction prediction
 
-Please see the FAQ: [How to use GloVe pre-trained embeddings in OpenNMT-py](http://opennmt.net/OpenNMT-py/FAQ.html#how-do-i-use-pretrained-embeddings-e-g-glove)
+To test the model on new reactions run:
+
+```bash
+onmt_translate -model uspto_model_pretrained.pt -src $DATADIR/src-test.txt -output predictions.txt  -n_best 1 -beam_size 5 -max_length 300 -batch_size 64 
+```
 
 ## Pretrained Models
 
-The following pretrained models can be downloaded and used with translate.py.
-
-http://opennmt.net/Models-py/
-
-## Acknowledgements
-
-OpenNMT-py is run as a collaborative open-source project.
-The original code was written by [Adam Lerer](http://github.com/adamlerer) (NYC) to reproduce OpenNMT-Lua using Pytorch.
-
-Major contributors are:
-[Sasha Rush](https://github.com/srush) (Cambridge, MA)
-[Vincent Nguyen](https://github.com/vince62s) (Ubiqus)
-[Ben Peters](http://github.com/bpopeters) (Lisbon)
-[Sebastian Gehrmann](https://github.com/sebastianGehrmann) (Harvard NLP)
-[Yuntian Deng](https://github.com/da03) (Harvard NLP)
-[Guillaume Klein](https://github.com/guillaumekln) (Systran)
-[Paul Tardy](https://github.com/pltrdy) (Ubiqus / Lium)
-[François Hernandez](https://github.com/francoishernandez) (Ubiqus)
-[Jianyu Zhan](http://github.com/jianyuzhan) (Shanghai)
-[Dylan Flaute](http://github.com/flauted (University of Dayton)
-and more !
-
-OpentNMT-py belongs to the OpenNMT project along with OpenNMT-Lua and OpenNMT-tf.
+Pretrained models can be found in the `models`folder.
 
 ## Citation
+
+```
+@article{Pesciullesi2020,
+author = "Giorgio Pesciullesi and Philippe Schwaller and Teodoro Laino and Jean-Louis Reymond",
+title = "{Carbohydrate Transformer: Predicting Regio- and Stereoselective Reactions Using Transfer Learning}",
+year = "2020",
+month = "3",
+url = "https://chemrxiv.org/articles/preprint/Carbohydrate_Transformer_Predicting_Regio-_and_Stereoselective_Reactions_Using_Transfer_Learning/11935635",
+doi = "10.26434/chemrxiv.11935635.v1"
+}
+```
+
+
+The Carbohydrate Transformer is based on OpentNMT-py, if you reuse this code please also cite the underlying code framework.
 
 [OpenNMT: Neural Machine Translation Toolkit](https://arxiv.org/pdf/1805.11462)
 
