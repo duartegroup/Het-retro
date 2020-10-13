@@ -1,6 +1,6 @@
 # Carbohydrate Transformer
 
-This is the code and data of the "Carbohydrate Transformer: Predicting  Regio- and Stereoselective Reactions using Transfer Learning"
+This repo complements the ["Transfer learning enables the molecular transformer to predict regio-and stereoselective reactions on carbohydrates"](https://www.nature.com/articles/s41467-020-18671-7) publication. 
 
 ## Requirements
 
@@ -163,13 +163,15 @@ Pretrained models can be found in the `models`folder.
 ## Citation
 
 ```
-@article{Pesciullesi2020,
-author = "Giorgio Pesciullesi and Philippe Schwaller and Teodoro Laino and Jean-Louis Reymond",
-title = "{Carbohydrate Transformer: Predicting Regio- and Stereoselective Reactions Using Transfer Learning}",
-year = "2020",
-month = "3",
-url = "https://chemrxiv.org/articles/preprint/Carbohydrate_Transformer_Predicting_Regio-_and_Stereoselective_Reactions_Using_Transfer_Learning/11935635",
-doi = "10.26434/chemrxiv.11935635.v1"
+@article{pesciullesi2020transfer,
+  title={Transfer learning enables the molecular transformer to predict regio-and stereoselective reactions on carbohydrates},
+  author={Pesciullesi, Giorgio and Schwaller, Philippe and Laino, Teodoro and Reymond, Jean-Louis},
+  journal={Nature Communications},
+  volume={11},
+  number={1},
+  pages={1--8},
+  year={2020},
+  publisher={Nature Publishing Group}
 }
 ```
 
