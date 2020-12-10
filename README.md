@@ -109,7 +109,7 @@ WEIGHT2=1
 
 onmt_train -data $DATADIR/multi_task  \
         -save_model  multi_task_model \
-        -data_ids uspto transfer --data_weights $WEIGHT1 $WEIGHT2
+        -data_ids uspto transfer --data_weights $WEIGHT1 $WEIGHT2 \
         -seed $SEED -gpu_ranks 0  \
         -train_steps 250000 -param_init 0 \
         -param_init_glorot -max_generator_batches 32 \
