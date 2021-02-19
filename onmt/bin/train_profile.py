@@ -49,7 +49,7 @@ def train(opt):
             train_shards.append(shard_base)
         train_iter = build_dataset_iter_multiple(train_shards, fields, opt)
     else:
-        if opt.data_ids[0] is not None:
+        if opt.data_ids[0] is not None and opt.data_ids[0] != 'None':
             shard_base = "train_" + opt.data_ids[0]
         else:
             shard_base = "train"
