@@ -48,8 +48,9 @@ class MultiHeadedAttention(nn.Module):
        dropout (float): dropout parameter
     """
 
-    def __init__(self, head_count, model_dim, dropout=0.1,
-                 max_relative_positions=0):
+    def __init__(
+        self, head_count, model_dim, dropout=0.1, max_relative_positions=0
+    ):
         assert model_dim % head_count == 0
         self.dim_per_head = model_dim // head_count
         self.model_dim = model_dim
@@ -57,12 +58,13 @@ class MultiHeadedAttention(nn.Module):
         super(MultiHeadedAttention, self).__init__()
         self.head_count = head_count
 
-        self.linear_keys = nn.Linear(model_dim,
-                                     head_count * self.dim_per_head)
-        self.linear_values = nn.Linear(model_dim,
-                                       head_count * self.dim_per_head)
-        self.linear_query = nn.Linear(model_dim,
-                                      head_count * self.dim_per_head)
+        self.linear_keys = nn.Linear(model_dim, head_count * self.dim_per_head)
+        self.linear_values = nn.Linear(
+            model_dim, head_count * self.dim_per_head
+        )
+        self.linear_query = nn.Linear(
+            model_dim, head_count * self.dim_per_head
+        )
         self.softmax = nn.Softmax(dim=-1)
         self.dropout = nn.Dropout(dropout)
         self.final_linear = nn.Linear(model_dim, model_dim)
@@ -72,10 +74,12 @@ class MultiHeadedAttention(nn.Module):
         if max_relative_positions > 0:
             vocab_size = max_relative_positions * 2 + 1
             self.relative_positions_embeddings = nn.Embedding(
-                vocab_size, self.dim_per_head)
+                vocab_size, self.dim_per_head
+            )
 
-    def forward(self, key, value, query, mask=None,
-                layer_cache=None, attn_type=None):
+    def forward(
+        self, key, value, query, mask=None, layer_cache=None, attn_type=None
+    ):
         """
         Compute the context vector and the attention vectors.
 
@@ -137,13 +141,11 @@ class MultiHeadedAttention(nn.Module):
                 key = shape(key)
                 value = shape(value)
                 if layer_cache["self_keys"] is not None:
-                    key = torch.cat(
-                        (layer_cache["self_keys"], key),
-                        dim=2)
+                    key = torch.cat((layer_cache["self_keys"], key), dim=2)
                 if layer_cache["self_values"] is not None:
                     value = torch.cat(
-                        (layer_cache["self_values"], value),
-                        dim=2)
+                        (layer_cache["self_values"], value), dim=2
+                    )
                 layer_cache["self_keys"] = key
                 layer_cache["self_values"] = value
             elif attn_type == "context":
@@ -169,14 +171,18 @@ class MultiHeadedAttention(nn.Module):
             key_len = key.size(2)
             # 1 or key_len x key_len
             relative_positions_matrix = generate_relative_positions_matrix(
-                key_len, self.max_relative_positions,
-                cache=True if layer_cache is not None else False)
+                key_len,
+                self.max_relative_positions,
+                cache=True if layer_cache is not None else False
+            )
             #  1 or key_len x key_len x dim_per_head
             relations_keys = self.relative_positions_embeddings(
-                relative_positions_matrix.to(key.device))
+                relative_positions_matrix.to(key.device)
+            )
             #  1 or key_len x key_len x dim_per_head
             relations_values = self.relative_positions_embeddings(
-                relative_positions_matrix.to(key.device))
+                relative_positions_matrix.to(key.device)
+            )
 
         query = shape(query)
 
@@ -205,10 +211,10 @@ class MultiHeadedAttention(nn.Module):
         context_original = torch.matmul(drop_attn, value)
 
         if self.max_relative_positions > 0 and attn_type == "self":
-            context = unshape(context_original
-                              + relative_matmul(drop_attn,
-                                                relations_values,
-                                                False))
+            context = unshape(
+                context_original +
+                relative_matmul(drop_attn, relations_values, False)
+            )
         else:
             context = unshape(context_original)
 
@@ -225,7 +231,14 @@ class MultiHeadedAttention(nn.Module):
                   query_len, key_len)[:, 0, :, :] \
             .contiguous()
 
-        return output, top_attn
+        # Return mean attn instead of one top_attn
+        mean_attn = attn \
+            .view(batch_size, head_count,
+                  query_len, key_len).mean(dim=1).contiguous()
+
+        assert top_attn.shape == mean_attn.shape
+
+        return output, mean_attn
 
     def update_dropout(self, dropout):
         self.dropout.p = dropout
