@@ -226,17 +226,15 @@ class MultiHeadedAttention(nn.Module):
         # aeq(d, d_)
 
         # Return one attn
-        top_attn = attn \
-            .view(batch_size, head_count,
-                  query_len, key_len)[:, 0, :, :] \
-            .contiguous()
+        # top_attn = attn \
+        #     .view(batch_size, head_count,
+        #           query_len, key_len)[:, 0, :, :] \
+        #     .contiguous()
 
         # Return mean attn instead of one top_attn
         mean_attn = attn \
             .view(batch_size, head_count,
                   query_len, key_len).mean(dim=1).contiguous()
-
-        assert top_attn.shape == mean_attn.shape
 
         return output, mean_attn
 
