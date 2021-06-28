@@ -158,7 +158,7 @@ def main(opt, device_id, batch_queue=None, semaphore=None):
             init_dict['project'] = opt.wandb_project_name
         if opt.wandb_run_name is not None:
             init_dict['name'] = opt.wandb_run_name
-        wandb.init(init_dict)
+        wandb.init(**init_dict)
 
         wandb.config.update({k:v for k, v in vars(opt).items()})
         import onmt
