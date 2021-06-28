@@ -19,6 +19,8 @@ def build_report_manager(opt, gpu_rank):
         writer = SummaryWriter(tensorboard_log_dir, comment="Unmt")
     elif opt.mlflow and gpu_rank == 0:
         writer = MLflowSummaryWriter()
+    elif opt.wandb and gpu_rank == 0:
+        writer = WandbSummaryWriter()
     else:
         writer = None
 
@@ -171,3 +173,17 @@ class MLflowSummaryWriter(object):
         # mlflow cannot display metric that include '/' char
         tag = tag.replace('/', '_')
         mlflow.log_metric(tag, scalar_value, step=global_step)
+
+
+class WandbSummaryWriter(object):
+    """
+    Map Summarywriter add_scalar function to mlflow log_metric 
+    """
+    def __init__(self):
+        pass
+
+    def add_scalar(self, tag, scalar_value, global_step=None):
+        import wandb
+        # mlflow cannot display metric that include '/' char
+        tag = tag.replace('/', '_')
+        wandb.log({tag: scalar_value}, step=global_step)

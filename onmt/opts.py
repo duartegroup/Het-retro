@@ -558,6 +558,18 @@ def train_opts(parser):
               type=str, default=None,
               help="MLflow run name")
 
+    # Use MLflow for logging training runs and config parameters
+    # https://docs.wandb.ai/guides/track/advanced/environment-variables
+    # should be set: WANDB_API_KEY / WANDB_BASE_URL
+    group.add('--wandb', '-wandb', action="store_true",
+              help="Use wandb to log training runs and parameters. ")
+    group.add("--wandb_project_name", "-wandb_project_name",
+              type=str, default=None,
+              help="wandb experiment name")
+    group.add("--wandb_run_name", "-wandb_run_name",
+              type=str, default=None,
+              help="wandb run name")
+
 
     group = parser.add_argument_group('Speech')
     # Options most relevant to speech

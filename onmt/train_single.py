@@ -151,6 +151,22 @@ def main(opt, device_id, batch_queue=None, semaphore=None):
         mlflow.log_param('n_total_parameters', n_params)
         import onmt
         mlflow.log_param('onmt_version', onmt.__version__)
+    elif opt.wandb:
+        import wandb
+        init_dict = {}
+        if opt.wandb_project_name is not None:
+            init_dict['project'] = opt.wandb_project_name
+        if opt.wandb_run_name is not None:
+            init_dict['name'] = opt.wandb_run_name
+        wandb.init(init_dict)
+
+        wandb.config.update({k:v for k, v in vars(opt).items()})
+        import onmt
+        wandb.config.update({'n_enc_parameters', enc,
+            'n_dec_parameters', dec,
+            'n_total_parameters', n_params,
+            'onmt_version', onmt.__version__
+            })
 
     trainer.train(
         train_iter,
@@ -164,5 +180,7 @@ def main(opt, device_id, batch_queue=None, semaphore=None):
     if trainer.report_manager.tensorboard_writer is not None:
         if opt.mlflow:
             mlflow.end_run()
+        elif opt.wandb:
+            wandb.finish()
         else:
             trainer.report_manager.tensorboard_writer.close()
