@@ -19,6 +19,8 @@ def build_report_manager(opt, gpu_rank):
         writer = SummaryWriter(tensorboard_log_dir, comment="Unmt")
     elif opt.mlflow and gpu_rank == 0:
         writer = MLflowSummaryWriter()
+    elif opt.wandb and gpu_rank == 0:
+        writer = WandbSummaryWriter()
     else:
         writer = None
 
@@ -129,10 +131,20 @@ class ReportMgr(ReportMgrBase):
                             learning_rate, self.start_time)
 
         # Log the progress using the number of batches on the x-axis.
-        self.maybe_log_tensorboard(report_stats,
-                                   "progress",
-                                   learning_rate,
-                                   self.progress_step)
+        # For wandb use step (1000, 2000, .. ) instead of progress_step
+        # (1,2,3, ...) for training, as otherwise it raises an error
+        # after logging the validation stats with the progress_step
+        # because of the too "old" logs.
+        if isinstance(self.tensorboard_writer, WandbSummaryWriter):
+            self.maybe_log_tensorboard(report_stats,
+                                       "progress",
+                                       learning_rate,
+                                       step)
+        else: # default onmt behaviour
+            self.maybe_log_tensorboard(report_stats,
+                                       "progress",
+                                       learning_rate,
+                                       self.progress_step)
         report_stats = onmt.utils.Statistics()
 
         return report_stats
@@ -171,3 +183,17 @@ class MLflowSummaryWriter(object):
         # mlflow cannot display metric that include '/' char
         tag = tag.replace('/', '_')
         mlflow.log_metric(tag, scalar_value, step=global_step)
+
+
+class WandbSummaryWriter(object):
+    """
+    Map Summarywriter add_scalar function to mlflow log_metric 
+    """
+    def __init__(self):
+        pass
+
+    def add_scalar(self, tag, scalar_value, global_step=None):
+        import wandb
+        # mlflow cannot display metric that include '/' char
+        tag = tag.replace('/', '_')
+        wandb.log({tag: scalar_value}, step=global_step)
