@@ -131,12 +131,16 @@ class ReportMgr(ReportMgrBase):
                             learning_rate, self.start_time)
 
         # Log the progress using the number of batches on the x-axis.
+        # For wandb use step (1000, 2000, .. ) instead of progress_step
+        # (1,2,3, ...) for training, as otherwise it raises an error
+        # after logging the validation stats with the progress_step
+        # because of the too "old" logs.
         if isinstance(self.tensorboard_writer, WandbSummaryWriter):
             self.maybe_log_tensorboard(report_stats,
                                        "progress",
                                        learning_rate,
                                        step)
-        else:
+        else: # default onmt behaviour
             self.maybe_log_tensorboard(report_stats,
                                        "progress",
                                        learning_rate,
