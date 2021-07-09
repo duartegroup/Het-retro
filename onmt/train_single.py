@@ -162,10 +162,10 @@ def main(opt, device_id, batch_queue=None, semaphore=None):
 
         wandb.config.update({k:v for k, v in vars(opt).items()})
         import onmt
-        wandb.config.update({'n_enc_parameters', enc,
-            'n_dec_parameters', dec,
-            'n_total_parameters', n_params,
-            'onmt_version', onmt.__version__
+        wandb.config.update({'n_enc_parameters': enc,
+            'n_dec_parameters': dec,
+            'n_total_parameters': n_params,
+            'onmt_version': onmt.__version__
             })
 
     trainer.train(
