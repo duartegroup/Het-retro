@@ -2,22 +2,6 @@ dist: xenial
 language: python
 python:
   - "3.5"
-git:
-  depth: false
-addons:
-  apt:
-    packages:
-      # Additional dependencies for im2text and speech2text
-      - libsox-dev
-      - libsox-fmt-all
-      - sox
-
-jobs:
-  include:
-    - name: "Flake8 Lint Check"
-      env: LINT_CHECK
-      install: pip install flake8 pep8-naming==0.7.0
-      script: flake8
 
 deploy:
   provider: pypi
