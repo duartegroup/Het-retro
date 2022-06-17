@@ -7,8 +7,8 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
-    name='rxn-OpenNMT-py',
-    description='Fork of OpenNMT-py for use in rxn projects',
+    name='rxn-opennmt-py',
+    description='Fork of OpenNMT-py for use in RXN projects',
     long_description=long_description,
     long_description_content_type='text/markdown',
     version='1.0.3',
