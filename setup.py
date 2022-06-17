@@ -11,7 +11,7 @@ setup(
     description='Fork of OpenNMT-py for use in RXN projects',
     long_description=long_description,
     long_description_content_type='text/markdown',
-    version='1.0.3',
+    version='1.1.0',
     packages=find_packages(),
     project_urls={
         "Documentation": "http://opennmt.net/OpenNMT-py/",
