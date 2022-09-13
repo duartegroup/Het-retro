@@ -23,7 +23,7 @@ setup(
     install_requires=[
         "six",
         "tqdm~=4.30.0",
-        "torch>=1.2,<1.5",
+        "torch>=1.2,<1.6",  # versions 1.6 or higher fail with the current fork (i.e. fork from the official repo in March 2020)
         "torchtext==0.4.0",
         "future",
         "configargparse",
