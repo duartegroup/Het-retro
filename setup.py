@@ -12,7 +12,7 @@ setup(
     description="Fork of OpenNMT-py for use in RXN projects",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    version="1.1.1",
+    version="1.1.2",
     packages=find_packages(),
     project_urls={
         "Documentation": "http://opennmt.net/OpenNMT-py/",
@@ -23,7 +23,7 @@ setup(
     install_requires=[
         "six",
         "tqdm~=4.30.0",
-        "torch>=1.2,<1.4",  # Originally torch==1.2.0, changed for compatibility with powerai-1.7.0 (pytorch-1.3.1)
+        "torch>=1.2,<1.5",
         "torchtext==0.4.0",
         "future",
         "configargparse",
