@@ -16,9 +16,7 @@ setup(
     packages=find_packages(),
     project_urls={
         "Documentation": "http://opennmt.net/OpenNMT-py/",
-        "Forum": "http://forum.opennmt.net/",
-        "Gitter": "https://gitter.im/OpenNMT/OpenNMT-py",
-        "Source": "https://github.com/OpenNMT/OpenNMT-py/",
+        "Source": "https://github.com/rxn4chemistry/OpenNMT-py/",
     },
     install_requires=[
         "six",

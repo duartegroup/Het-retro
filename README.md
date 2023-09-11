@@ -7,6 +7,10 @@ It can be installed from Pypi with:
 pip install rxn-opennmt-py
 ```
 
+Links:
+* [GitHub repository](https://github.com/rxn4chemistry/OpenNMT-py)
+* [PyPI package](https://pypi.org/project/rxn-opennmt-py/)
+
 ## OpenNMT-py
 
 This is a [Pytorch](https://github.com/pytorch/pytorch)
