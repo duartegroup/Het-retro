@@ -271,6 +271,8 @@ class Translator(object):
             report_time=opt.report_time,
             copy_attn=model_opt.copy_attn,
             global_scorer=global_scorer,
+            log_probs_out_file=log_probs_out_file,
+            target_score_out_file=target_score_out_file,
             out_file=out_file,
             report_align=report_align,
             report_score=report_score,
