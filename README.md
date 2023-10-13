@@ -1,6 +1,6 @@
-# Carbohydrate Transformer
+# Heterocycle Retrosynthesis
 
-This repo complements the ["Transfer learning enables the molecular transformer to predict regio-and stereoselective reactions on carbohydrates"](https://www.nature.com/articles/s41467-020-18671-7) publication. 
+This repo contains models from paper ... 
 
 ## Requirements
 
@@ -125,7 +125,28 @@ onmt_train -data $DATADIR/multi_task  \
 ```
 
 
-#### Sequential transfer learning
+#### Fine-tuning
+
+```bash
+DATADIR=data/transfer_dataset
+
+onmt_train -data $DATADIR/sequential  \
+        -train_from models/upsto_model_pretrained.pt \
+        -save_model  sequential_model \
+        -seed $SEED -gpu_ranks 0  \
+        -train_steps 6000 -param_init 0 \
+        -param_init_glorot -max_generator_batches 32 \
+        -batch_size 6144 -batch_type tokens \
+         -normalization tokens -max_grad_norm 0  -accum_count 4 \
+        -optim adam -adam_beta1 0.9 -adam_beta2 0.998 -decay_method noam  \
+        -warmup_steps 8000 -learning_rate 2 -label_smoothing 0.0 \
+        -layers 4 -rnn_size  384 -word_vec_size 384 \
+        -encoder_type transformer -decoder_type transformer \
+        -dropout 0.1 -position_encoding -share_embeddings  \
+        -global_attention general -global_attention_function softmax \
+        -self_attn_type scaled-dot -heads 8 -transformer_ff 2048
+```
+#### Mixed fine-tuning
 
 ```bash
 DATADIR=data/transfer_dataset
@@ -147,7 +168,6 @@ onmt_train -data $DATADIR/sequential  \
         -self_attn_type scaled-dot -heads 8 -transformer_ff 2048
 ```
 
-
 ### Step 3: Chemical reaction prediction
 
 To test the model on new reactions run:
@@ -155,28 +175,23 @@ To test the model on new reactions run:
 ```bash
 onmt_translate -model uspto_model_pretrained.pt -src $DATADIR/src-test.txt -output predictions.txt  -n_best 1 -beam_size 5 -max_length 300 -batch_size 64 
 ```
+To perfrom ensemble decoding:
 
-## Pretrained Models
+## Models
 
-Pretrained models can be found in the `models`folder.
+The 'models' folder contains:
+* pretrained (baseline) retrosynthesis prediction and forward reaction prediction models
+* forward reaction prediction multi-task model
+* retrosynthesis prediction multi-task, fine-tuned and mixed fine-tuned models
 
 ## Citation
 
 ```
-@article{pesciullesi2020transfer,
-  title={Transfer learning enables the molecular transformer to predict regio-and stereoselective reactions on carbohydrates},
-  author={Pesciullesi, Giorgio and Schwaller, Philippe and Laino, Teodoro and Reymond, Jean-Louis},
-  journal={Nature Communications},
-  volume={11},
-  number={1},
-  pages={1--8},
-  year={2020},
-  publisher={Nature Publishing Group}
-}
+
 ```
 
 
-The Carbohydrate Transformer is based on OpentNMT-py, if you reuse this code please also cite the underlying code framework.
+This work is based on OpentNMT-py, if you reuse this code please also cite the underlying code framework.
 
 [OpenNMT: Neural Machine Translation Toolkit](https://arxiv.org/pdf/1805.11462)
 
