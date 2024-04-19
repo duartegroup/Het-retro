@@ -31,7 +31,7 @@ The full documentation of the OpenNMT library can be found [here](http://opennmt
 
 ### Step 1: Preprocess the data
 
-Start by preparing all datasets as described in their respective directories.
+Start by preparing the Ring and USPTO datasets as described in their respective directories.
 
 #### Single data sets
 
