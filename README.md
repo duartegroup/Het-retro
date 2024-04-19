@@ -1,6 +1,6 @@
 # Heterocycle Retrosynthesis
 
-This repo contains models from paper ... 
+This repository complements our publication ... 
 
 ## Requirements
 
@@ -14,13 +14,12 @@ RDKit: 2019.03.2
 ## Conda Environemt Setup
 
 ```bash
-conda create -n onmt36 python=3.6
-conda activate onmt36
+conda create -n het-retro python=3.6
+conda activate het-retro
 conda install -c rdkit rdkit=2019.03.2 -y
 conda install -c pytorch pytorch=1.2.0 -y
-git clone https://github.com/rxn4chemistry/OpenNMT-py.git
-cd OpenNMT-py
-git checkout carbohydrate_transformer
+git clone https://github.com/ewawieczorek/Het-retro.git
+cd Het-retro
 pip install -e .
 ```
 
@@ -32,39 +31,44 @@ The full documentation of the OpenNMT library can be found [here](http://opennmt
 
 ### Step 1: Preprocess the data
 
-Start by merging the two uspto training source files into a single file using `python merge_src_splits.py` in `data/uspto_dataset`.
+Start by preparing all datasets as described in their respective directories.
 
 #### Single data sets
+
+This preprocessing approach is suitable for pre-training and fine-tuning:
+
 ```bash
 DATADIR=data/uspto_dataset
-onmt_preprocess -train_src $DATADIR/src-train.txt -train_tgt $DATADIR/tgt-train.txt -valid_src $DATADIR/src-valid.txt -valid_tgt $DATADIR/tgt-valid.txt -save_data $DATADIR/uspto -src_seq_length 3000 -tgt_seq_length 3000 -src_vocab_size 3000 -tgt_vocab_size 3000 -share_vocab
+onmt_preprocess -train_src $DATADIR/product-train.txt -train_tgt $DATADIR/reactant-train.txt -valid_src $DATADIR/product-valid.txt -valid_tgt $DATADIR/reactant-valid.txt -save_data $DATADIR/uspto -src_seq_length 3000 -tgt_seq_length 3000 -src_vocab_size 3000 -tgt_vocab_size 3000 -share_vocab
 ```
 
 ```bash
-DATADIR=data/transfer_dataset
-onmt_preprocess -train_src $DATADIR/src-train.txt -train_tgt $DATADIR/tgt-train.txt -valid_src $DATADIR/src-valid.txt -valid_tgt $DATADIR/tgt-valid.txt -save_data $DATADIR/sequential -src_seq_length 3000 -tgt_seq_length 3000 -src_vocab_size 3000 -tgt_vocab_size 3000 -share_vocab
+DATADIR=data/ring_dataset
+onmt_preprocess -train_src $DATADIR/product-train.txt -train_tgt $DATADIR/reactant-train.txt -valid_src $DATADIR/product-valid.txt -valid_tgt $DATADIR/reactant-valid.txt -save_data $DATADIR/sequential -src_seq_length 3000 -tgt_seq_length 3000 -src_vocab_size 3000 -tgt_vocab_size 3000 -share_vocab
 ```
 
 #### Multi-task data sets
 
+This preprocessing approach is suitable for multi-task learning and mixed fine-tuning:
+
 ```bash
 DATASET=data/uspto_dataset
-DATASET_TRANSFER=data/transfer_dataset
+DATASET_TRANSFER=data/ring_dataset
 
-onmt_preprocess -train_src ${DATASET}/src-train.txt ${DATASET_TRANSFER}/src-train.txt -train_tgt ${DATASET}/tgt-train.txt ${DATASET_TRANSFER}/tgt-train.txt -train_ids uspto transfer  -valid_src ${DATASET_TRANSFER}/src-valid.txt -valid_tgt ${DATASET_TRANSFER}/tgt-valid.txt -save_data ${DATASET_TRANSFER}/multi_task -src_seq_length 3000 -tgt_seq_length 3000 -src_vocab_size 3000 -tgt_vocab_size 3000 -share_vocab
+onmt_preprocess -train_src ${DATASET}/product-train.txt ${DATASET_TRANSFER}/product-train.txt -train_tgt ${DATASET}/reactant-train.txt ${DATASET_TRANSFER}/reactant-train.txt -train_ids uspto ring  -valid_src ${DATASET_TRANSFER}/product-valid.txt -valid_tgt ${DATASET_TRANSFER}/reactant-valid.txt -save_data ${DATASET_TRANSFER}/multi_task -src_seq_length 3000 -tgt_seq_length 3000 -src_vocab_size 3000 -tgt_vocab_size 3000 -share_vocab
 
 ```
 
 
-The files have been previously tokenized using the tokenization function for the reaction SMILES is available from https://github.com/pschwllr/MolecularTransformer.
+The files have been previously tokenized using the tokenization function for the reaction SMILES adapted from https://github.com/pschwllr/MolecularTransformer.
 
 
-The data consists of parallel precursors (`src`) and products (`tgt`) data containing one reaction per line with tokens separated by a space:
+The data consists of parallel precursors (`reactant`) and products (`product`) data containing one reaction per line with tokens separated by a space:
 
-* `src-train.txt`
-* `tgt-train.txt`
-* `src-val.txt`
-* `tgt-val.txt`
+* `reactant-train.txt`
+* `product-train.txt`
+* `reactant-val.txt`
+* `product-val.txt`
 
 
 After running the preprocessing, the following files are generated:
@@ -85,7 +89,7 @@ The transformer models were trained using the following hyperparameters:
 ```bash
 DATADIR=data/uspto_dataset
 onmt_train -data $DATADIR/uspto  \
-        -save_model  uspto_model_pretrained \
+        -save_model  baseline_model \
         -seed $SEED -gpu_ranks 0  \
         -train_steps 250000 -param_init 0 \
         -param_init_glorot -max_generator_batches 32 \
@@ -103,13 +107,13 @@ onmt_train -data $DATADIR/uspto  \
 #### Multi-task transfer learning
 
 ```bash
-DATADIR=data/transfer_dataset
+DATADIR=data/ring_dataset
 WEIGHT1=9
 WEIGHT2=1
 
 onmt_train -data $DATADIR/multi_task  \
         -save_model  multi_task_model \
-        -data_ids uspto transfer --data_weights $WEIGHT1 $WEIGHT2 \
+        -data_ids uspto ring --data_weights $WEIGHT1 $WEIGHT2 \
         -seed $SEED -gpu_ranks 0  \
         -train_steps 250000 -param_init 0 \
         -param_init_glorot -max_generator_batches 32 \
@@ -128,13 +132,14 @@ onmt_train -data $DATADIR/multi_task  \
 #### Fine-tuning
 
 ```bash
-DATADIR=data/transfer_dataset
+DATADIR=data/ring_dataset
+TRAIN_STEPS=6000
 
 onmt_train -data $DATADIR/sequential  \
-        -train_from models/upsto_model_pretrained.pt \
-        -save_model  sequential_model \
+        -train_from models/baseline_model.pt \
+        -save_model  fine_tuned_model \
         -seed $SEED -gpu_ranks 0  \
-        -train_steps 6000 -param_init 0 \
+        -train_steps 250000+$TRAIN_STEPS -param_init 0 \
         -param_init_glorot -max_generator_batches 32 \
         -batch_size 6144 -batch_type tokens \
          -normalization tokens -max_grad_norm 0  -accum_count 4 \
@@ -149,13 +154,14 @@ onmt_train -data $DATADIR/sequential  \
 #### Mixed fine-tuning
 
 ```bash
-DATADIR=data/transfer_dataset
+DATADIR=data/ring_dataset
+TRAIN_STEPS=6000
 
-onmt_train -data $DATADIR/sequential  \
-        -train_from models/upsto_model_pretrained.pt \
-        -save_model  sequential_model \
+onmt_train -data $DATADIR/multi-task  \
+        -train_from models/baseline_model.pt \
+        -save_model  mixed_fine_tuned_model \
         -seed $SEED -gpu_ranks 0  \
-        -train_steps 6000 -param_init 0 \
+        -train_steps 250000+$TRAIN_STEPS -param_init 0 \
         -param_init_glorot -max_generator_batches 32 \
         -batch_size 6144 -batch_type tokens \
          -normalization tokens -max_grad_norm 0  -accum_count 4 \
@@ -173,15 +179,23 @@ onmt_train -data $DATADIR/sequential  \
 To test the model on new reactions run:
 
 ```bash
-onmt_translate -model uspto_model_pretrained.pt -src $DATADIR/src-test.txt -output predictions.txt  -n_best 1 -beam_size 5 -max_length 300 -batch_size 64 
+DATADIR=data/ring_dataset
+onmt_translate -model models/mixed_fine_tuned_model.pt -src $DATADIR/product-test.txt -output predictions.txt  -n_best 1 -beam_size 5 -max_length 300 -batch_size 64 
 ```
 To perfrom ensemble decoding:
 
+```bash
+DATADIR=data/ring_dataset
+onmt_translate -model models/baseline_model.pt models/fine_tuned_model.pt -src $DATADIR/product-test.txt -output ensemble_predictions.txt  -n_best 1 -beam_size 5 -max_length 300 -batch_size 64
+ 
+```
+
 ## Models
 
-The 'models' folder contains:
-* pretrained (baseline) retrosynthesis prediction and forward reaction prediction models
-* forward reaction prediction multi-task model
+The models need to be downloaded from ... and placed into a models folder.
+The models provided are:
+* pretrained (baseline) retrosynthesis prediction model
+* forward reaction prediction multi-task model (used for round-trip accuracy calculation)
 * retrosynthesis prediction multi-task, fine-tuned and mixed fine-tuned models
 
 ## Citation
