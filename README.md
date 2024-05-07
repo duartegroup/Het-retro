@@ -1,6 +1,6 @@
 # Heterocycle Retrosynthesis
 
-This repository complements our publication ... 
+This repository complements our publication "Transfer learning for Heterocycle Synthesis Prediction": https://chemrxiv.org/engage/chemrxiv/article-details/6617d56321291e5d1d9ef449 
 
 ## Requirements
 
@@ -192,7 +192,7 @@ onmt_translate -model models/baseline_model.pt models/fine_tuned_model.pt -src $
 
 ## Models
 
-The models need to be downloaded from ... and placed into a models folder.
+The models need to be downloaded from https://doi.org/10.6084/m9.figshare.25723818 and placed into a models folder.
 The models provided are:
 * pretrained (baseline) retrosynthesis prediction model
 * forward reaction prediction multi-task model (used for round-trip accuracy calculation)
@@ -201,6 +201,16 @@ The models provided are:
 ## Citation
 
 ```
+@misc{wieczorek_transfer_2024,
+	title = {Transfer learning for {Heterocycle} {Synthesis} {Prediction}},
+	url = {https://chemrxiv.org/engage/chemrxiv/article-details/6617d56321291e5d1d9ef449},
+	doi = {10.26434/chemrxiv-2024-ngqqg},
+	publisher = {ChemRxiv},
+	author = {Wieczorek, Ewa and Sin, Joshua W. and Holland, Matthew T. O. and Wilbraham, Liam and Perez, Victor S. and Bradley, Anthony and Miketa, Dominik and Brennan, Paul E. and Duarte, Fernanda},
+	month = may,
+	year = {2024}
+}
+
 
 ```
 
